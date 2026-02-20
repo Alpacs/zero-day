@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>zero day</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --bg-secondary: #111111;
+            --bg-tertiary: #1a1a1a;
+            --text-primary: #fafafa;
+            --text-secondary: #888;
+            --text-muted: #444;
+            --border-color: #1f1f1f;
+            --font-serif: 'Georgia', 'Times New Roman', serif;
+            --font-sans: 'Helvetica Neue', 'Arial', sans-serif;
+            --transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            --spacing-xs: 0.75rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url("image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            opacity: 0.025;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Typography - Mobile Base */
+        h1, h2, h3 {
+            font-family: var(--font-serif);
+            font-weight: 400;
+        }
+
+        h1 { 
+            font-size: 2.5rem; 
+            letter-spacing: -0.08em;
+            line-height: 1;
+        }
+
+        h2 { 
+            font-size: 0.65rem; 
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        h3 { 
+            font-size: 1.25rem; 
+            font-weight: 400;
+        }
+
+        p { 
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        /* Navigation - Mobile */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: var(--spacing-md) var(--spacing-sm);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 100;
+            background: linear-gradient(180deg, rgba(10,10,10,0.9) 0%, transparent 100%);
+        }
+
+        .nav-brand {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .nav-logo {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            text-transform: lowercase;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: var(--transition);
+        }
+
+        .nav-logo:hover, .nav-logo:active { opacity: 1; }
+
+        .nav-meta {
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            text-transform: lowercase;
+        }
+
+        .nav-status {
+            text-align: right;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .status-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.4rem;
+            animation: pulse 4s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* Main */
+        main {
+            min-height: 100vh;
+        }
+
+        /* Landing - Mobile */
+        #landing {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: var(--spacing-xl) var(--spacing-sm);
+            position: relative;
+        }
+
+        .landing-content {
+            max-width: 100%;
+        }
+
+        .landing-label {
+            font-size: 0.6rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-lg);
+            padding-left: 2px;
+        }
+
+        .landing-text {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-family: var(--font-serif);
+            font-weight: 300;
+            line-height: 2;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .enter-btn {
+            background: transparent;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 1rem 2.5rem;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: lowercase;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            max-width: 280px;
+        }
+
+        .enter-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: var(--text-primary);
+            transition: var(--transition);
+            z-index: -1;
+        }
+
+        .enter-btn:hover, .enter-btn:active {
+            color: var(--bg-color);
+            border-color: var(--text-primary);
+        }
+
+        .enter-btn:hover::before, .enter-btn:active::before {
+            left: 0;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: var(--spacing-lg);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.55rem;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            animation: fadeInOut 2s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Archive - Mobile */
+        #archive {
+            min-height: 100vh;
+            padding: 0 var(--spacing-sm);
+            display: none;
+            opacity: 0;
+        }
+
+        #archive.active {
+            display: block;
+            opacity: 1;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .archive-intro {
+            padding: 10vh 0 3vh;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 0;
+        }
+
+        .archive-intro h2 {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .archive-intro p {
+            font-family: var(--font-serif);
+            font-size: 0.9rem;
+            line-height: 1.8;
+            max-width: 100%;
+        }
+
+        /* Cards - Mobile First */
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card {
+            position: relative;
+            min-height: 420px;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            overflow: hidden;
+            transition: var(--transition);
+        }
+
+        .card:active {
+            border-color: var(--text-muted);
+        }
+
+        .card-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+
+        .card-bg img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease;
+            filter: grayscale(60%) contrast(85%) brightness(0.35);
+        }
+
+        .card:active .card-bg img {
+            transform: scale(1.05);
+            filter: grayscale(40%) contrast(95%) brightness(0.45);
+        }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                180deg,
+                rgba(10, 10, 10, 0.75) 0%,
+                rgba(10, 10, 10, 0.85) 100%
+            );
+            z-index: 1;
+            transition: var(--transition);
+        }
+
+        .card-content {
+            position: relative;
+            z-index: 2;
+            padding: var(--spacing-xl) var(--spacing-sm);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .card-number {
+            font-size: 0.55rem;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            font-family: var(--font-sans);
+        }
+
+        .audio-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: var(--transition);
+        }
+
+        .card:active .audio-badge {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .audio-wave {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .audio-wave span {
+            width: 2px;
+            height: 10px;
+            background: var(--text-secondary);
+            border-radius: 1px;
+            animation: wave 1.5s ease-in-out infinite;
+        }
+
+        .audio-wave span:nth-child(2) { animation-delay: 0.1s; }
+        .audio-wave span:nth-child(3) { animation-delay: 0.2s; }
+        .audio-wave span:nth-child(4) { animation-delay: 0.3s; }
+
+        @keyframes wave {
+            0%, 100% { height: 6px; opacity: 0.5; }
+            50% { height: 12px; opacity: 1; }
+        }
+
+        .audio-label {
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+
+        .card-title {
+            font-size: 1.4rem;
+            margin-bottom: var(--spacing-md);
+            font-family: var(--font-serif);
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .card-excerpt {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.9;
+            font-family: var(--font-serif);
+            font-weight: 300;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .card-bottom {
+            position: absolute;
+            bottom: var(--spacing-lg);
+            right: var(--spacing-sm);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .listen-text {
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            transition: var(--transition);
+        }
+
+        .card:active .listen-text {
+            color: var(--text-secondary);
+        }
+
+        .play-button {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+        }
+
+        .card:active .play-button {
+            background: var(--text-primary);
+            border-color: var(--text-primary);
+            transform: scale(1.05);
+        }
+
+        .play-button svg {
+            width: 14px;
+            height: 16px;
+            fill: var(--text-primary);
+            margin-left: 2px;
+            transition: var(--transition);
+        }
+
+        .card:active .play-button svg {
+            fill: var(--bg-color);
+        }
+
+        /* Modal - Mobile First */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-color);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal-wrapper {
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-visual {
+            position: relative;
+            height: 45vh;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .modal-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(40%) brightness(0.7);
+        }
+
+        .modal-panel {
+            background: var(--bg-secondary);
+            padding: var(--spacing-xl) var(--spacing-sm);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            position: relative;
+            flex: 1;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-sm);
+            background: rgba(10, 10, 10, 0.8);
+            border: 1px solid var(--border-color);
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            cursor: pointer;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-close:hover, .modal-close:active {
+            color: var(--text-primary);
+            border-color: var(--text-primary);
+        }
+
+        .modal-header {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .modal-number {
+            font-size: 0.55rem;
+            letter-spacing: 0.2em;
+            color: var(--text-muted);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .modal-title {
+            font-size: 1.6rem;
+            margin-bottom: 0.6rem;
+            font-family: var(--font-serif);
+            color: var(--text-primary);
+            line-height: 1.3;
+        }
+
+        .modal-meta {
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* Player - Mobile */
+        .player-section {
+            margin-bottom: var(--spacing-xl);
+            padding: var(--spacing-lg);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 2px;
+        }
+
+        .player-main {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .player-button {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: var(--text-primary);
+            color: var(--bg-color);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            flex-shrink: 0;
+        }
+
+        .player-button:hover, .player-button:active { 
+            transform: scale(1.08);
+            background: #fff;
+        }
+
+        .player-button svg {
+            width: 16px;
+            height: 18px;
+            fill: var(--bg-color);
+            margin-left: 2px;
+        }
+
+        .player-track {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .player-bar {
+            height: 3px;
+            background: var(--border-color);
+            border-radius: 2px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            margin-bottom: 0.6rem;
+        }
+
+        .player-progress {
+            width: 38%;
+            height: 100%;
+            background: var(--text-primary);
+            transition: width 0.2s ease;
+        }
+
+        .player-time {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Text - Mobile */
+        .modal-body-text {
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            line-height: 2;
+            color: var(--text-secondary);
+            white-space: pre-line;
+            font-weight: 300;
+        }
+
+        .modal-body-text::first-letter {
+            font-size: 2.5rem;
+            float: left;
+            line-height: 0.7;
+            margin-right: 0.5rem;
+            margin-top: -0.15rem;
+            color: var(--text-primary);
+        }
+
+        /* Footer - Mobile */
+        footer {
+            padding: var(--spacing-xl) var(--spacing-sm);
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        footer p {
+            font-size: 0.55rem;
+            letter-spacing: 0.15em;
+            color: var(--text-muted);
+            text-transform: lowercase;
+        }
+
+        /* Tablet Styles */
+        @media (min-width: 600px) {
+            h1 { font-size: 3rem; }
+            h3 { font-size: 1.4rem; }
+            
+            nav {
+                padding: var(--spacing-lg) var(--spacing-md);
+            }
+            
+            #landing {
+                padding: var(--spacing-xl) var(--spacing-lg);
+            }
+            
+            .landing-text {
+                font-size: 1.1rem;
+                max-width: 450px;
+            }
+            
+            .enter-btn {
+                width: auto;
+            }
+            
+            .scroll-indicator {
+                left: auto;
+                right: var(--spacing-lg);
+                transform: none;
+            }
+            
+            #archive {
+                padding: 0 var(--spacing-lg);
+            }
+            
+            .card {
+                min-height: 460px;
+            }
+            
+            .card-content {
+                padding: var(--spacing-xl) var(--spacing-lg);
+            }
+            
+            .card-title {
+                font-size: 1.6rem;
+                max-width: 400px;
+            }
+            
+            .card-bottom {
+                bottom: var(--spacing-xl);
+                right: var(--spacing-lg);
+            }
+            
+            .play-button {
+                width: 52px;
+                height: 52px;
+            }
+            
+            .modal-visual {
+                height: 50vh;
+            }
+            
+            .modal-panel {
+                padding: var(--spacing-xl) var(--spacing-lg);
+            }
+            
+            .modal-title {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Desktop Styles */
+        @media (min-width: 900px) {
+            :root {
+                --spacing-sm: 1.5rem;
+                --spacing-md: 2rem;
+                --spacing-lg: 3rem;
+                --spacing-xl: 5rem;
+            }
+
+            h1 { font-size: 4.5rem; }
+            h2 { font-size: 0.7rem; }
+            h3 { font-size: 1.5rem; }
+            
+            nav {
+                padding: 3rem 5rem;
+            }
+            
+            .nav-logo {
+                font-size: 0.8rem;
+            }
+            
+            .nav-meta {
+                font-size: 0.65rem;
+            }
+            
+            .nav-status {
+                font-size: 0.65rem;
+            }
+            
+            #landing {
+                padding: 0 5rem;
+            }
+            
+            .landing-label {
+                font-size: 0.65rem;
+                margin-bottom: 2.5rem;
+            }
+            
+            .landing-text {
+                font-size: 1.15rem;
+                line-height: 2.3;
+                margin-bottom: 4.5rem;
+            }
+            
+            .enter-btn {
+                padding: 1.4rem 4rem;
+                font-size: 0.75rem;
+            }
+            
+            .scroll-indicator {
+                bottom: 5rem;
+                font-size: 0.6rem;
+            }
+            
+            #archive {
+                padding: 0 5rem;
+            }
+            
+            .archive-intro {
+                padding: 12vh 0 8vh;
+            }
+            
+            .archive-intro p {
+                font-size: 1rem;
+                max-width: 480px;
+            }
+            
+            .card {
+                min-height: 520px;
+            }
+            
+            .card-content {
+                padding: 5rem 5rem;
+            }
+            
+            .card-top {
+                margin-bottom: 3rem;
+            }
+            
+            .card-number {
+                font-size: 0.6rem;
+            }
+            
+            .audio-badge {
+                padding: 0.5rem 1rem;
+            }
+            
+            .audio-wave span {
+                height: 12px;
+            }
+            
+            @keyframes wave {
+                0%, 100% { height: 8px; }
+                50% { height: 14px; }
+            }
+            
+            .audio-label {
+                font-size: 0.6rem;
+            }
+            
+            .card-title {
+                font-size: 1.8rem;
+                margin-bottom: 1.5rem;
+                max-width: 500px;
+            }
+            
+            .card-excerpt {
+                font-size: 1rem;
+                line-height: 2.1;
+                max-width: 450px;
+            }
+            
+            .card-bottom {
+                bottom: 3.5rem;
+                right: 5rem;
+                gap: 1.2rem;
+            }
+            
+            .listen-text {
+                font-size: 0.65rem;
+            }
+            
+            .play-button {
+                width: 56px;
+                height: 56px;
+            }
+            
+            .play-button svg {
+                width: 16px;
+                height: 18px;
+            }
+            
+            .modal-wrapper {
+                max-width: 1280px;
+                height: 100vh;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .modal-visual {
+                height: 100vh;
+            }
+            
+            .modal-image {
+                filter: grayscale(30%) brightness(0.75);
+            }
+            
+            .modal-panel {
+                padding: 6rem 5rem;
+            }
+            
+            .modal-close {
+                top: 3rem;
+                right: 3rem;
+                width: 48px;
+                height: 48px;
+            }
+            
+            .modal-header {
+                margin-bottom: 3.5rem;
+            }
+            
+            .modal-number {
+                font-size: 0.6rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .modal-title {
+                font-size: 2.2rem;
+            }
+            
+            .modal-meta {
+                font-size: 0.65rem;
+            }
+            
+            .player-section {
+                margin-bottom: 3.5rem;
+                padding: 2.5rem;
+            }
+            
+            .player-main {
+                gap: 2rem;
+                margin-bottom: 1.5rem;
+            }
+            
+            .player-button {
+                width: 64px;
+                height: 64px;
+            }
+            
+            .player-button svg {
+                width: 18px;
+                height: 20px;
+            }
+            
+            .player-bar {
+                margin-bottom: 1rem;
+            }
+            
+            .player-time {
+                font-size: 0.65rem;
+            }
+            
+            .modal-body-text {
+                font-size: 1.05rem;
+                line-height: 2.2;
+            }
+            
+            .modal-body-text::first-letter {
+                font-size: 3rem;
+                margin-right: 0.75rem;
+            }
+            
+            footer {
+                padding: 3rem 5rem;
+            }
+            
+            footer p {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Large Desktop */
+        @media (min-width: 1400px) {
+            .modal-wrapper {
+                margin: 0 auto;
+            }
+        }
+
+        /* Hover states for non-touch devices */
+        @media (hover: hover) {
+            .card:hover {
+                border-color: var(--text-muted);
+            }
+            
+            .card:hover .card-bg img {
+                transform: scale(1.08);
+                filter: grayscale(40%) contrast(95%) brightness(0.45);
+            }
+            
+            .card:hover .audio-badge {
+                background: rgba(255, 255, 255, 0.1);
+                border-color: rgba(255, 255, 255, 0.2);
+            }
+            
+            .card:hover .listen-text {
+                color: var(--text-secondary);
+            }
+            
+            .card:hover .play-button {
+                background: var(--text-primary);
+                border-color: var(--text-primary);
+                transform: scale(1.08);
+            }
+            
+            .card:hover .play-button svg {
+                fill: var(--bg-color);
+            }
+            
+            .enter-btn:hover {
+                color: var(--bg-color);
+                border-color: var(--text-primary);
+            }
+            
+            .enter-btn:hover::before {
+                left: 0;
+            }
+            
+            .nav-logo:hover {
+                opacity: 1;
+            }
+            
+            .modal-close:hover {
+                color: var(--text-primary);
+                border-color: var(--text-primary);
+            }
+            
+            .player-button:hover {
+                transform: scale(1.1);
+                background: #fff;
+            }
+        }
+
+        /* Reduce motion for accessibility */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Safe area for notched devices */
+        @supports (padding: max(0px)) {
+            nav {
+                padding-top: max(var(--spacing-md), env(safe-area-inset-top));
+                padding-left: max(var(--spacing-sm), env(safe-area-inset-left));
+                padding-right: max(var(--spacing-sm), env(safe-area-inset-right));
+            }
+            
+            #landing {
+                padding-left: max(var(--spacing-sm), env(safe-area-inset-left));
+                padding-right: max(var(--spacing-sm), env(safe-area-inset-right));
+                padding-bottom: max(var(--spacing-xl), env(safe-area-inset-bottom));
+            }
+            
+            #archive {
+                padding-left: max(var(--spacing-sm), env(safe-area-inset-left));
+                padding-right: max(var(--spacing-sm), env(safe-area-inset-right));
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <div class="nav-brand">
+            <span class="nav-logo" onclick="goHome()">zero day</span>
+            <span class="nav-meta">мемориальный архив</span>
+        </div>
+        <div class="nav-status">
+            <span class="status-dot"></span>
+            активен
+        </div>
+    </nav>
+
+    <main>
+        <!-- Landing -->
+        <section id="landing">
+            <div class="landing-content">
+                <p class="landing-label">пространство памяти</p>
+                <h1>zero day</h1>
+                <p class="landing-text">
+                    здесь время не движется вперёд.<br>
+                    голоса, тексты и образы<br>
+                    существуют вне хронологии.
+                </p>
+                <button class="enter-btn" onclick="enterArchive()">открыть архив</button>
+            </div>
+            <div class="scroll-indicator">листайте вниз</div>
+        </section>
+
+        <!-- Archive -->
+        <section id="archive">
+            <div class="archive-intro">
+                <h2>архив</h2>
+                <p>
+                    каждая запись — это единство образа, слова и звука. 
+                    откройте любую, чтобы погрузиться в момент, 
+                    который больше не повторится.
+                </p>
+            </div>
+
+            <div class="cards-list" id="cards-list">
+                <!-- Generated via JS -->
+            </div>
+
+            <footer>
+                <p>zero day archive © 2024</p>
+            </footer>
+        </section>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-wrapper">
+            <div class="modal-visual">
+                <img class="modal-image" id="modal-img" src="" alt="">
+            </div>
+            <div class="modal-panel">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                
+                <div class="modal-header">
+                    <p class="modal-number" id="modal-number">01</p>
+                    <h3 class="modal-title" id="modal-title">Название записи</h3>
+                    <p class="modal-meta">аудио · текст · образ</p>
+                </div>
+
+                <div class="player-section">
+                    <div class="player-main">
+                        <button class="player-button" id="play-btn" onclick="togglePlay()">
+                            <svg viewBox="0 0 18 20"><path d="M17 10L1 19V1L17 10Z"/></svg>
+                        </button>
+                        <div class="player-track">
+                            <div class="player-bar">
+                                <div class="player-progress" id="progress"></div>
+                            </div>
+                            <div class="player-time">
+                                <span id="current-time">01:36</span>
+                                <span id="total-time">04:12</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-body-text" id="modal-text">
+                    Текст записи...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const archiveData = [
+            {
+                id: 1,
+                title: "эхо в пустой комнате",
+                image: "https://image.qwenlm.ai/public_source/85c559a7-6b75-4ef3-9355-3df23ce4b6b6/163ff7f44-80e1-4609-b58d-83968c8cf5f5.png",
+                excerpt: "тишина здесь не абсолютна. она наполнена пылью, танцующей в луче света, и далеким шумом города, который кажется чужим...",
+                fullText: "тишина здесь не абсолютна.\n\nона наполнена пылью, танцующей в луче света, и далеким шумом города, который кажется чужим, словно доносится из другой эпохи.\n\nя сижу в кресле, которое помнит тепло. стрелки часов двигаются медленно, отсчитывая секунды, которые больше не нужны никому, кроме меня.\n\nно в этом ожидании есть покой. покой застывшей воды. покой книги, закрытой на последней странице, где герой так и не сделал свой выбор.\n\nи может быть, в этом и есть смысл — не сделать выбор, а просто быть здесь, в этой тишине, которая на самом деле не тишина вовсе."
+            },
+            {
+                id: 2,
+                title: "разговор с ветром",
+                image: "https://image.qwenlm.ai/public_source/85c559a7-6b75-4ef3-9355-3df23ce4b6b6/129f29d43-fcc1-445b-a999-547df4ccc2c3.png",
+                excerpt: "ветер сегодня особенный. он не несет холода, он несет запахи мокрого асфальта и старой листвы, напоминания о том, что было...",
+                fullText: "ветер сегодня особенный.\n\nон не несет холода, он несет запахи мокрого асфальта и старой листвы, напоминания о том, что было и больше не вернется.\n\nмы слушаем друг друга через стекло. я — его шум, он — мое дыхание на холодной поверхности.\n\nмежду нами нет слов, только ритм. ритм, который был здесь до нас и останется после. ритм, который не требует ответа.\n\nиногда мне кажется, что ветер помнит всё. каждое слово, которое было сказано при открытом окне. каждый вздох. каждую паузу."
+            },
+            {
+                id: 3,
+                title: "старый мотив",
+                image: "https://image.qwenlm.ai/public_source/85c559a7-6b75-4ef3-9355-3df23ce4b6b6/1b0704502-354e-49f9-9340-ef601d20ba4d.png",
+                excerpt: "мелодия, которую я слышал однажды летом. она простая, всего три ноты, но в них заключена вся грусть уходящего дня...",
+                fullText: "мелодия, которую я слышал однажды летом.\n\nона простая, всего три ноты, но в них заключена вся грусть уходящего дня, когда солнце садится за горизонт и окрашивает небо в цвета, для которых нет названий.\n\nтеперь я напеваю её сам. голос дрожит, но ноты те же. память — это тоже музыка, которую мы играем сами для себя, в пустой комнате, когда никого нет рядом.\n\nи в этой музыке нет печали. есть только понимание того, что всё, что было, осталось с нами. навсегда."
+            }
+        ];
+
+        let currentTrack = null;
+        let isPlaying = false;
+        let progressInterval = null;
+        let progress = 38;
+
+        function init() {
+            const list = document.getElementById('cards-list');
+            
+            archiveData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openModal(item, index + 1);
+                card.innerHTML = `
+                    <div class="card-bg">
+                        <img src="${item.image}" alt="${item.title}">
+                    </div>
+                    <div class="card-overlay"></div>
+                    <div class="card-content">
+                        <div class="card-top">
+                            <p class="card-number">0${index + 1}</p>
+                            <div class="audio-badge">
+                                <div class="audio-wave">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <span class="audio-label">аудио</span>
+                            </div>
+                        </div>
+                        <h3 class="card-title">${item.title}</h3>
+                        <p class="card-excerpt">${item.excerpt}</p>
+                        <div class="card-bottom">
+                            <span class="listen-text">слушать</span>
+                            <div class="play-button">
+                                <svg viewBox="0 0 16 18"><path d="M15 9L1 15V3L15 9Z"/></svg>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function enterArchive() {
+            const landing = document.getElementById('landing');
+            landing.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            landing.style.opacity = '0';
+            landing.style.transform = 'translateY(-50px)';
+            
+            setTimeout(() => {
+                landing.style.display = 'none';
+                const archive = document.getElementById('archive');
+                archive.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 800);
+        }
+
+        function goHome() {
+            const archive = document.getElementById('archive');
+            if (archive.classList.contains('active')) {
+                archive.classList.remove('active');
+                
+                setTimeout(() => {
+                    const landing = document.getElementById('landing');
+                    landing.style.display = 'flex';
+                    setTimeout(() => {
+                        landing.style.opacity = '1';
+                        landing.style.transform = 'translateY(0)';
+                    }, 50);
+                }, 600);
+            }
+        }
+
+        function openModal(item, number) {
+            currentTrack = item;
+            document.getElementById('modal-number').textContent = `0${number}`;
+            document.getElementById('modal-title').textContent = item.title;
+            document.getElementById('modal-img').src = item.image;
+            document.getElementById('modal-img').alt = item.title;
+            document.getElementById('modal-text').textContent = item.fullText;
+            document.getElementById('modal').classList.add('open');
+            document.body.style.overflow = 'hidden';
+            
+            isPlaying = false;
+            updatePlayButton();
+            progress = 38;
+            updateProgress();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('open');
+            document.body.style.overflow = '';
+            isPlaying = false;
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+        }
+
+        function togglePlay() {
+            isPlaying = !isPlaying;
+            updatePlayButton();
+            
+            if (isPlaying) {
+                progressInterval = setInterval(() => {
+                    progress += 0.08;
+                    if (progress >= 100) {
+                        progress = 0;
+                        isPlaying = false;
+                        updatePlayButton();
+                        clearInterval(progressInterval);
+                    }
+                    updateProgress();
+                }, 100);
+            } else {
+                if (progressInterval) {
+                    clearInterval(progressInterval);
+                    progressInterval = null;
+                }
+            }
+        }
+
+        function updatePlayButton() {
+            const btn = document.getElementById('play-btn');
+            if (isPlaying) {
+                btn.innerHTML = '<svg viewBox="0 0 18 20"><rect x="3" y="2" width="5" height="16"/><rect x="10" y="2" width="5" height="16"/></svg>';
+            } else {
+                btn.innerHTML = '<svg viewBox="0 0 18 20"><path d="M17 10L1 19V1L17 10Z"/></svg>';
+            }
+        }
+
+        function updateProgress() {
+            document.getElementById('progress').style.width = `${progress}%`;
+            const totalSeconds = 252;
+            const currentSeconds = Math.floor((progress / 100) * totalSeconds);
+            const mins = Math.floor(currentSeconds / 60);
+            const secs = currentSeconds % 60;
+            document.getElementById('current-time').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        document.getElementById('modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('modal')) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('modal').classList.contains('open')) {
+                closeModal();
+            }
+        });
+
+        // Handle touch events for better mobile experience
+        document.querySelectorAll('.card, .enter-btn, .play-button, .modal-close, .player-button').forEach(el => {
+            el.addEventListener('touchstart', function() {
+                this.style.opacity = '0.8';
+            }, { passive: true });
+            
+            el.addEventListener('touchend', function() {
+                this.style.opacity = '';
+            }, { passive: true });
+        });
+
+        init();
+    </script>
+</body>
+</html>
+
+
